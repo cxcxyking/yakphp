@@ -1,10 +1,10 @@
 <?php
 
-namespace Yak\System\Router;
+namespace Yak\System;
 
 use YakRouteRule;
 
-interface MatcherInterface
+interface RouteMatcherInterface
 {
     static function match(YakRouteRule $rule): bool;
 

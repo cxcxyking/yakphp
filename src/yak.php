@@ -2,7 +2,12 @@
 
 declare (strict_types=1);
 
+use function Yak\System\Handle;
+use Yak\System\YakAutoLoadHandler;
+
 define('YAK', 'V0.0.1 - Alpha');
+
+define('LIB_DIR', dirname(__DIR__) . '/libs');
 
 define('YAK_DIR', __DIR__);
 define('YAK_LIB', YAK_DIR . '/library/yak');
@@ -20,60 +25,83 @@ define('YAK_CFG', YAK_DIR . '/config');
 define('YAK_APP', YAK_DIR . '/app');
 
 if (PHP_VERSION < '7') {
-    die('The php version was older, please upgrade to php7 or greater. (minimum required: php >= 7.0.0)');
+	die('The php version was older, please upgrade to php7 or greater. (minimum required: php >= 7.0.0)');
 }
 
 function write_log(string $name, string $content, array $attachedInfo = [])
 {
-    $logFileName = 'log_' . date('ymdHis') . '_' . random_int(10000, 99999) . '.txt';
-    $logFilePath = YAK_LOG . '/' . $logFileName;
-    $attachedInfoStr = '';
-    foreach ($attachedInfo as $name => $value) {
-        $attachedInfoStr .= $name . ' => ' . $value . "\n";
-    }
-    if (!is_writable($logFilePath)) {
-        file_put_contents($logFilePath, sprintf("Time: %s\nName: %s\nMessage: %s\n======\nAttached Information: \n%s", date('r'), $name, $content, $attachedInfoStr));
-    } else {
-        die('System was tried saving a log, but have not the write permission.');
-    }
-    return $logFileName;
+	$logFileName = 'log_' . date('ymdHis') . '_' . random_int(10000, 99999) . '.txt';
+	$logFilePath = YAK_LOG . '/' . $logFileName;
+	$attachedInfoStr = '';
+	foreach ($attachedInfo as $name => $value) {
+		$attachedInfoStr .= $name . ' => ' . $value . "\n";
+	}
+	if (!is_writable($logFilePath)) {
+		file_put_contents($logFilePath, sprintf("Time: %s\nName: %s\nMessage: %s\n======\nAttached Information: \n%s", date('r'), $name, $content, $attachedInfoStr));
+	} else {
+		die('System was tried saving a log, but have not the write permission.');
+	}
+	return $logFileName;
 }
 
 
 // Load constant definitions.
 
-$sourceFiles = glob(YAK_CST . '/*.php');
-
-foreach ($sourceFiles as $file) {
-    include_once $file;
+foreach (glob(YAK_CST . '/*.php') as $file) {
+	require_once $file;
 }
 
-// Load core components of Yak.
+// Load utility functions
 
-$sourceFiles = glob(YAK_SYS . '/*/*.php');
-// var_dump($sourceFiles);
-
-foreach ($sourceFiles as $file) {
-    require_once $file;
+foreach (glob(YAK_FUN . '/*.php') as $file) {
+	require_once $file;
 }
 
-$sourceFiles = glob(YAK_SYS . '/*.php');
-// var_dump($sourceFiles);
+// Load system functions
 
-foreach ($sourceFiles as $file) {
-    require_once $file;
+foreach (glob(YAK_SYS . '/function/*.php') as $file) {
+	require_once $file;
 }
 
-$sourceFiles = glob(YAK_DIR . '/api/*.php');
+// Register system autoloader
 
-foreach ($sourceFiles as $file) {
-    require_once $file;
+spl_autoload_register(function (string $class) {
+	if (substr($class, 0, 4) !== 'Yak\\') {
+		return;
+	}
+	$map = array(
+		'Yak\\System\\Handler' => YAK_SYS . '/abstract/Handler.php'
+	);
+	if (isset($map[$class])) {
+		require $map[$class];
+	} elseif (preg_match('/^Yak\\\System\\\([A-Z][0-9A-Za-z_]*(?:\\\([A-Z][0-9A-Za-z_]*))*)$/', $class, $match) === 1) {
+		$comp = explode('\\', $match[1]);
+		$path = implode('/', $comp);
+		if (is_file(YAK_SYS . '/' . $path . '.php')) {
+			require YAK_SYS . '/' . $path . '.php';
+		} elseif (is_file(YAK_SYS . '/core/' . $path . '.php')) {
+			require YAK_SYS . '/core/' . $path . '.php';
+		} elseif (preg_match('/^[A-Z][0-9A-Za-z_]*Interface$/', $path) === 1) {
+			require YAK_SYS . '/interface/' . $path . '.php';
+		} elseif (preg_match('/^[A-Z][0-9A-Za-z_]*Handler$/', $path) === 1) {
+			require YAK_SYS . '/handler/' . $path . '.php';
+		}
+	}
+});
+
+spl_autoload_register(function (string $class) {
+	if (substr($class, 0, 12) !== 'YakInstance\\') {
+		return;
+	}
+	if (preg_match('/^YakInstance\\\([0-9A-Za-z_]+)\\\([A-Z][0-9A-Za-z_]*(?:\\\([A-Z][0-9A-Za-z_]*))*)$/', $class, $match) === 1) {
+		require \Yak\System\Context::getApplication()->getPath() . '/' . $match[2] . '.php';
+	}
+});
+
+// Load APIs
+
+foreach (glob(YAK_DIR . '/api/*.php') as $file) {
+	require_once $file;
 }
 
-require YAK_ORG . '/smarty-3.1.33/libs/bootstrap.php';
-
-$sourceFiles = glob(YAK_APP . '/ComponentNotFound/**/*.php');
-
-foreach ($sourceFiles as $file) {
-    require_once $file;
-}
+require LIB_DIR . '/smarty-3.1.33/libs/bootstrap.php';

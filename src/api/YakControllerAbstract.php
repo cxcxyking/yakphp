@@ -7,12 +7,12 @@ abstract class YakControllerAbstract
 {
     protected $view = null;
 
-    final public function __construct(YakRouteIntent $intent, ...$args)
+    final public function __construct(YakRouteIntent $intent, ...$arguments)
     {
         $this->view = new Smarty();
         $this->view->setTemplateDir($this->getApplication()->getViewDir());
         if (method_exists($this, 'init')) {
-            call_user_func([$this, 'init'], $intent, ...$args);
+            call_user_func([$this, 'init'], $intent, ...$arguments);
         }
     }
 
@@ -21,7 +21,7 @@ abstract class YakControllerAbstract
         return Context::getContext();
     }
 
-    public function getApplication(): Application
+    public function getApplication(): YakApplication
     {
         return Context::getApplication();
     }

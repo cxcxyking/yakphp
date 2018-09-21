@@ -13,6 +13,6 @@ class Home extends \YakControllerAbstract
         $this->view->assign('view', $intent->getView());
         $this->view->display('index.html');
 
-        echo $this->getApplication()->getSettings()['version'];
+        echo $this->getApplication()->getSettings('version');
     }
 }

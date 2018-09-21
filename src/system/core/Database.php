@@ -2,6 +2,6 @@
 
 namespace Yak\System;
 
-class Session
-{
+final class Database {
+    
 }

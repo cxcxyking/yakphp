@@ -2,64 +2,40 @@
 
 namespace Yak\System;
 
-use YakRouteIntent;
-
-function ControllerNotFoundHandler(YakRouteIntent $originIntent)
+function IsImplemented($interface, $class)
 {
-    Hook::register('Yak.Launcher.launchApplication.after', function ($id) use ($originIntent) {
-        Hook::delete($id);
-        Router::status('503');
-        Launcher::launchApplicationWithIntent(
-            new Application('ComponentNotFound', YAK_APP . '/ComponentNotFound'),
-            new YakRouteIntent(\YakInstance\ComponentNotFound\Controller\Home::class, 'controllerNotFound', '', '', ['originIntent' => $originIntent])
-        );
-    });
+	return in_array($interface, class_implements($class));
 }
 
-function ActionNotFoundHandler(YakRouteIntent $originIntent)
+function Handle(string $handler, ...$arguments)
 {
-    Hook::register('Yak.Launcher.launchApplication.after', function ($id) use ($originIntent) {
-        Hook::delete($id);
-        Router::status('503');
-        Launcher::launchApplicationWithIntent(
-            new Application('ComponentNotFound', YAK_APP . '/ComponentNotFound'),
-            new YakRouteIntent(\YakInstance\ComponentNotFound\Controller\Home::class, 'actionNotFound', '', '', ['originIntent' => $originIntent])
-        );
-    });
+	static $cache = [];
+	if (!isset($cache[$handler])) {
+		if (class_exists($handler) && IsImplemented(HandlerInterface::class, $handler)) {
+			if (get_parent_class($handler) === Handler::class) {
+				$cache[$handler] = Handler::get($handler);
+			} else {
+				$cache[$handler] = new $handler;
+			}
+		} else {
+			return;
+		}
+	}
+	call_user_func_array([$cache[$handler], 'handle'], $arguments);
 }
 
-function ModelNotFoundHandler(YakRouteIntent $originIntent)
+function yak_initialize(string $class, array $arguments = [])
 {
-    Hook::register('Yak.Launcher.launchApplication.after', function ($id) use ($originIntent) {
-        Hook::delete($id);
-        Router::status('503');
-        Launcher::launchApplicationWithIntent(
-            new Application('ComponentNotFound', YAK_APP . '/ComponentNotFound'),
-            new YakRouteIntent(\YakInstance\ComponentNotFound\Controller\Home::class, 'modelNotFound', '', '', ['originIntent' => $originIntent])
-        );
-    });
-}
+	static $marker = [];
 
-function ViewNotFoundHandler(YakRouteIntent $originIntent)
-{
-    Hook::register('Yak.Launcher.launchApplication.after', function ($id) use ($originIntent) {
-        Hook::delete($id);
-        Router::status('503');
-        Launcher::launchApplicationWithIntent(
-            new Application('ComponentNotFound', YAK_APP . '/ComponentNotFound'),
-            new YakRouteIntent(\YakInstance\ComponentNotFound\Controller\Home::class, 'viewNotFound', '', '', ['originIntent' => $originIntent])
-        );
-    });
-}
+	if (!method_exists($class, 'init')) {
+		return;
+	}
 
-function RouteNotFoundHandler()
-{
-    Hook::register('Yak.Launcher.launchApplication.after', function ($id) {
-        Hook::delete($id);
-        Router::status('503');
-        Launcher::launchApplicationWithIntent(
-            new Application('ComponentNotFound', YAK_APP . '/ComponentNotFound'),
-            new YakRouteIntent(\YakInstance\ComponentNotFound\Controller\Home::class, 'routeNotFound', '', '')
-        );
-    });
+	if (in_array($class, $marker)) {
+		return;
+	}
+
+	$marker[] = $class;
+	call_user_func_array([$class, 'init'], $arguments);
 }
