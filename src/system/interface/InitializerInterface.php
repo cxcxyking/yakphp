@@ -4,5 +4,5 @@ namespace Yak\System;
 
 interface InitializerInterface
 {
-	function init(...$arguments);
+	static function init(...$arguments);
 }

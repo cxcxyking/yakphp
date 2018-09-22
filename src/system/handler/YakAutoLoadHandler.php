@@ -1,21 +1,21 @@
 <?php
 
-namespace Yak\System;
+namespace Yak\System\Handler;
+
+use Yak\System\Handler;
 
 class YakAutoLoadHandler extends Handler
 {
-	public function handle(...$arguments): int
+	public static function handle(...$arguments): int
 	{
-		$class = $arguments[0];
-
-		if ($this->do($class)) {
+		if (self::do(...$arguments)) {
 			return YAK_HANDLE_SUCCESS;
 		} else {
 			return YAK_HANDLE_FAILURE;
 		}
 	}
 
-	private function do(string $class): bool
+	private static function do(string $class): bool
 	{
 		if (substr($class, 0, 3) !== 'Yak') {
 			return false;

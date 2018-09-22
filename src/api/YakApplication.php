@@ -120,7 +120,6 @@ class YakApplication
 			$settingsConfigPath = $this->getPath() . '/config/settings.php';
 			if (is_file($settingsConfigPath)) {
 				$importedSettings = require $settingsConfigPath;
-
 				$this->settings = array_merge($this->settings, is_array($importedSettings) ? $importedSettings : [], $this->originSettings);
 			}
 			$firstLock = false;

@@ -2,7 +2,10 @@
 
 namespace Yak\System\Router;
 
+use Yak\System\Context;
 use YakRouteRule;
+use YakRouteTarget;
+use YakRouteIntent;
 use Yak\System\RouteMatcherInterface;
 use Yak\System\Input;
 
@@ -23,7 +26,7 @@ class QueryRouteMatcher implements RouteMatcherInterface
 		}
 	}
 
-	public static function parse(YakRouteRule $rule): array
+	public static function parse(YakRouteRule $rule): YakRouteIntent
 	{
 		$reg = [];
 		$meta = explode('&', $rule->getRule());
@@ -31,6 +34,6 @@ class QueryRouteMatcher implements RouteMatcherInterface
 			$pair = explode('=', $meta[$i]);
 			$reg[substr($pair[1], 1, -1)] = Input::getHttpRequestField($pair[0]);
 		}
-		return $reg;
+		return new YakRouteIntent(Context::getApplication(), new YakRouteTarget($reg['controller'] ?? '', $reg['action'] ?? '', $reg['model'] ?? '', $reg['view'] ?? ''), $reg);
 	}
 }

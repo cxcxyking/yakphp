@@ -4,5 +4,5 @@ namespace Yak\System;
 
 interface HandlerInterface
 {
-	function handle(...$arguments): int;
+	static function handle(...$arguments): int;
 }

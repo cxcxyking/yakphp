@@ -9,23 +9,24 @@ use Yak\System\Hook;
 use Yak\System\Router;
 use Yak\System\Launcher;
 
-class RouteNotFoundHandler extends Handler
+class ApplicationViewNotFoundHandler extends Handler
 {
 
 	public static function handle(...$arguments): int
 	{
-		self::do();
+		$originIntent = $arguments[0];
+		self::do($originIntent);
 		return YAK_HANDLE_SUCCESS;
 	}
 
-	private static function do()
+	private static function do(YakRouteIntent $origin)
 	{
-		Hook::register('Yak.Launcher.launchApplication.after', function ($id) {
+		Hook::register('Yak.Launcher.launchApplication.after', function ($id) use ($origin) {
 			Hook::delete($id);
 			Router::status('503');
 			Launcher::launchApplicationWithIntent(
 				new YakApplication('ComponentNotFound', YAK_APP . '/ComponentNotFound'),
-				new YakRouteIntent(\YakInstance\ComponentNotFound\Controller\Home::class, 'routeNotFound', '', '')
+				new YakRouteIntent($origin->getApplication(), ['action' => [\YakInstance\ComponentNotFound\Controller\Home::class, 'viewNotFound']], ['target' => $origin->getTarget()])
 			);
 		});
 	}

@@ -2,48 +2,34 @@
 
 class YakRouteIntent
 {
-    private $controller;
-    private $action;
-    private $model;
-    private $view;
-    private $bundle = [];
+	private $app;
+	private $target;
+	private $store = [];
 
-    public function __construct(string $controller, string $action, string $model, string $view, array $bundle = [])
-    {
-        $this->controller = $controller;
-        $this->action = $action;
-        $this->model = $model;
-        $this->view = $view;
-        $this->bundle = $bundle;
-    }
+	public function __construct(YakApplication $app, YakRouteTarget $target, array $store = [])
+	{
+		$this->app = $app;
+		$this->target = $target;
+		$this->store = $store;
+	}
 
-    public function getController()
-    {
-        return $this->controller;
-    }
+	public function getApplication()
+	{
+		return $this->app;
+	}
 
-    public function getAction()
-    {
-        return $this->action;
-    }
+	public function getTarget()
+	{
+		return $this->target;
+	}
 
-    public function getModel()
-    {
-        return $this->model;
-    }
+	public function getStore()
+	{
+		return $this->store;
+	}
 
-    public function getView()
-    {
-        return $this->view;
-    }
-
-    public function getBundle()
-    {
-        return $this->bundle;
-    }
-
-    public function get(string $key, $default = null)
-    {
-        return $this->bundle[$key] ?? $default;
-    }
+	public function get(string $key, $default = null)
+	{
+		return $this->store[$key] ?? $default;
+	}
 }

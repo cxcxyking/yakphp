@@ -2,7 +2,7 @@
 
 namespace Yak\System\Event;
 
-class Event
+class EventUnit
 {
 	private $id;
 	private $callback;
@@ -13,12 +13,12 @@ class Event
 		$this->id = uniqid('', true);
 		$this->callback = $callback;
 		$this->boundArguments = $arguments;
-		Manager::registerEvent($this);
+		EventManager::registerEvent($this);
 	}
 
-	public function __invoke(Context $context, ...$arguments)
+	public function __invoke(EventContext $context, ...$arguments)
 	{
-		$this->invoke($context, $arguments);
+		return $this->invoke($context, $arguments);
 	}
 
 	public function getId()
@@ -26,8 +26,8 @@ class Event
 		return $this->id;
 	}
 
-	public function invoke(Context $context, array $arguments = [])
+	public function invoke(EventContext $context, ...$arguments)
 	{
-		call_user_func_array($this->callback, array_merge([$context], $this->boundArguments, $arguments));
+		return call_user_func($this->callback, $context, ...$this->boundArguments, ...$arguments);
 	}
 }

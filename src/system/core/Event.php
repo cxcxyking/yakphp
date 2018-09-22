@@ -6,18 +6,18 @@ final class Event
 {
 
 	/**
-	 * @var Event\Group
+	 * @var Event\EventGroup
 	 */
 	private static $defaultEventGroup = null;
 
 	public static function init()
 	{
-		self::$defaultEventGroup = new Event\Group();
+		self::$defaultEventGroup = new Event\EventGroup();
 	}
 
 	public static function on(string $name, callable $callback)
 	{
-		self::$defaultEventGroup->on($name, new Event\Event($callback));
+		self::$defaultEventGroup->on($name, new Event\EventUnit($callback));
 	}
 
 	public static function off(string $name)

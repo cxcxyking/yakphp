@@ -9,11 +9,11 @@ class Home extends YakControllerAbstract
 {
     public function init(YakRouteIntent $intent)
     {
-        if ($intent->get('originIntent', null) !== null) {
-            $this->view->assign('controller', $intent->get('originIntent')->getController());
-            $this->view->assign('action', $intent->get('originIntent')->getAction());
-            $this->view->assign('model', $intent->get('originIntent')->getModel());
-            $this->view->assign('view', $intent->get('originIntent')->getView());
+        if (($target = $intent->get('origin', null)) !== null) {
+            $this->view->assign('controller', $target->getTarget());
+            $this->view->assign('action', $intent->get('origin'));
+            $this->view->assign('model', $intent->get('origin'));
+            $this->view->assign('view', $intent->get('origin'));
         }
     }
 

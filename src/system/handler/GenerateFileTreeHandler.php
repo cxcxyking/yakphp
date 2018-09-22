@@ -1,16 +1,18 @@
 <?php
 
-namespace Yak\System;
+namespace Yak\System\Handler;
+
+use Yak\System\Handler;
 
 class GenerateFileTreeHandler extends Handler
 {
-	public function handle(...$arguments): int
+	public static function handle(...$arguments): int
 	{
-		$this->do();
+		self::do();
 	}
 
-	private function do()
+	private static function do()
 	{
-		
+
 	}
 }

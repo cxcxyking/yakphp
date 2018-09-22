@@ -2,13 +2,13 @@
 
 namespace Yak\System\Event;
 
-class Context
+class EventContext
 {
 	private $event;
 	private $group;
 	private $eventName;
 
-	public function __construct(Event $event, Group $group, string $eventName)
+	public function __construct(EventUnit $event, EventGroup $group, string $eventName)
 	{
 		$this->event = $event;
 		$this->group = $group;

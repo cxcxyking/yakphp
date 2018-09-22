@@ -3,6 +3,7 @@
 namespace Yak\System\Router;
 
 use YakRouteRule;
+use YakRouteIntent;
 use Yak\System\RouteMatcherInterface;
 use Yak\System\Environment;
 
@@ -23,7 +24,7 @@ class PathRouteMatcher implements RouteMatcherInterface
 		}
 	}
 
-	public static function parse(YakRouteRule $rule): array
+	public static function parse(YakRouteRule $rule): YakRouteIntent
 	{
 		$p = explode('/', Environment::getUrlPath());
 		$pp = explode('/', $rule->getRule());
@@ -31,6 +32,6 @@ class PathRouteMatcher implements RouteMatcherInterface
 		for ($i = 0; $i < count($pp); $i++) {
 			$reg[substr($pp[$i], 1, -1)] = $p[$i];
 		}
-		return $reg;
+		return new YakRouteIntent($reg['controller'] ?? '', $reg['action'] ?? '', $reg['model'] ?? '', $reg['view'] ?? '', $reg);
 	}
 }

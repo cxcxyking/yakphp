@@ -2,7 +2,7 @@
 
 namespace Yak\System\Event;
 
-class Manager
+class EventManager
 {
 	private static $events = [];
 	private static $groups = [];
@@ -17,14 +17,14 @@ class Manager
 		return self::$groups[$id] ?? null;
 	}
 
-	public static function registerEvent(Event $event)
+	public static function registerEvent(EventUnit $event)
 	{
 		if (!isset(self::$events[$event->getId()])) {
 			self::$events[$event->getId()] = $event;
 		}
 	}
 
-	public static function registerGroup(Group $group)
+	public static function registerGroup(EventGroup $group)
 	{
 		if (!isset(self::$groups[$group->getId()])) {
 			self::$groups[$group->getId()] = $group;

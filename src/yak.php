@@ -70,7 +70,9 @@ spl_autoload_register(function (string $class) {
 		return;
 	}
 	$map = array(
-		'Yak\\System\\Handler' => YAK_SYS . '/abstract/Handler.php'
+		'Yak\\System\\Handler' => YAK_SYS . '/abstract/Handler.php',
+		'Yak\\System\\Extractor' => YAK_SYS . '/abstract/Extractor.php',
+		'Yak\\System\\Validator' => YAK_SYS . '/abstract/Validator.php'
 	);
 	if (isset($map[$class])) {
 		require $map[$class];
@@ -84,7 +86,11 @@ spl_autoload_register(function (string $class) {
 		} elseif (preg_match('/^[A-Z][0-9A-Za-z_]*Interface$/', $path) === 1) {
 			require YAK_SYS . '/interface/' . $path . '.php';
 		} elseif (preg_match('/^[A-Z][0-9A-Za-z_]*Handler$/', $path) === 1) {
-			require YAK_SYS . '/handler/' . $path . '.php';
+			require YAK_SYS . $path . '.php';
+		} elseif (preg_match('/^[A-Z][0-9A-Za-z_]*Validator$/', $path) === 1) {
+			require YAK_SYS . $path . '.php';
+		} elseif (preg_match('/^[A-Z][0-9A-Za-z_]*Extractor$/', $path) === 1) {
+			require YAK_SYS . $path . '.php';
 		}
 	}
 });

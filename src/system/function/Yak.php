@@ -2,6 +2,8 @@
 
 namespace Yak\System;
 
+use YakApplication;
+
 function IsImplemented($interface, $class)
 {
 	return in_array($interface, class_implements($class));
@@ -23,6 +25,13 @@ function Handle(string $handler, ...$arguments)
 	}
 	call_user_func_array([$cache[$handler], 'handle'], $arguments);
 }
+
+function DefaultRouteEnabled(YakApplication $app)
+{
+	return $app->getSettings('route.default.controller') && $app->getSettings('route.default.action') && $app->getSettings('route.default.model') && $app->getSettings('route.default.view');
+}
+
+function 
 
 function yak_initialize(string $class, array $arguments = [])
 {

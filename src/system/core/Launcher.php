@@ -4,6 +4,12 @@ namespace Yak\System;
 
 use YakRouteIntent;
 use YakApplication;
+use Yak\System\Handler\ApplicationActionNotFoundHandler;
+use Yak\System\Handler\ApplicationControllerNotFoundHandler;
+use Yak\System\Handler\ApplicationDefaultRouteHandler;
+use Yak\System\Handler\ApplicationModelNotFoundHandler;
+use Yak\System\Handler\RouteNotFoundHandler;
+use Yak\System\Handler\ApplicationViewNotFoundHandler;
 
 final class Launcher
 {
@@ -11,7 +17,6 @@ final class Launcher
 	{
 		Hook::trigger('Yak.Launcher.launchApplication.before');
 		self::initSystem();
-
 		self::initApplication($app);
 		self::startApplication($app);
 		self::destroyApplication($app);
@@ -26,7 +31,6 @@ final class Launcher
 		self::startApplicationWithIntent($app, $intent);
 		self::destroyApplication($app);
 		Hook::trigger('Yak.Launcher.launchApplication.after');
-
 	}
 
 	public static function initSystem()
@@ -35,11 +39,7 @@ final class Launcher
 		Event::init();
 		Input::init();
 		Router::init();
-
-		Hook::register('NoSuitableRoute', function () {
-			Handle(RouteNotFoundHandler::class);
-		});
-
+		Hook::register('NoSuitableRoute', [RouteNotFoundHandler::class, 'handle']);
 		Hook::trigger('Yak.Launcher.initSystem.after');
 	}
 
@@ -55,28 +55,37 @@ final class Launcher
 	private static function startApplication(YakApplication $app)
 	{
 		Hook::trigger('Yak.Launcher.startApplication.before');
-		if ($originIntent = Router::detect($app->getRouteRules())) {
-			$intent = Router::require($originIntent, [
-				'onControllerNotFound' => function (...$arguments) {
-					Handle(ControllerNotFoundHandler::class, ...$arguments);
-				},
-				'onActionNotFound' => function (...$arguments) {
-					Handle(ActionNotFoundHandler::class, ...$arguments);
-				},
-				'onModelNotFound' => function (...$arguments) {
-					Handle(ModelNotFoundHandler::class, ...$arguments);
-				},
-				'onViewNotFound' => function (...$arguments) {
-					Handle(ViewNotFoundHandler::class, ...$arguments);
+		if (($match = Router::match($app->getRouteRules())) !== null) {
+			$success = function (YakRouteIntent $origin, array $props) {
+				return new YakRouteIntent($origin->getApplication(), $props, $origin->getStore());
+			};
+			$failure = function (YakRouteIntent $origin, $step) {
+				if (DefaultRouteEnabled($origin->getApplication())) {
+					ApplicationDefaultRouteHandler::handle($origin);
+				} else {
+					switch ($step) {
+						case 'controller':
+							ApplicationControllerNotFoundHandler::handle($origin);
+							break;
+						case 'action':
+							ApplicationActionNotFoundHandler::handle($origin);
+							break;
+						case 'model':
+							ApplicationModelNotFoundHandler::handle($origin);
+							break;
+						case 'view':
+							ApplicationViewNotFoundHandler::handle($origin);
+							break;
+						default:
+							break;
+					}
 				}
-			], [
-				'originIntent' => $originIntent
-			]);
-			if ($intent) {
+			};
+			if (($intent = Router::fetch($match, $success, $failure)) !== null) {
 				Router::direct($intent);
 			}
 		} else {
-			Handle(DefaultRouteHandler::class);
+			Hook::trigger('NoSuitableRoute');
 		}
 		Hook::trigger('Yak.Launcher.startApplication.after');
 	}
@@ -95,5 +104,4 @@ final class Launcher
 		Hook::trigger('Yak.Launcher.destroyApplication.after');
 
 	}
-
 }

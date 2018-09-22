@@ -2,7 +2,7 @@
 
 namespace Yak\System\Event;
 
-class Group
+class EventGroup
 {
 	private $id;
 
@@ -11,7 +11,7 @@ class Group
 	public function __construct()
 	{
 		$this->id = uniqid('', true);
-		Manager::registerGroup($this);
+		EventManager::registerGroup($this);
 	}
 
 	public function __set($name, $value)
@@ -40,22 +40,26 @@ class Group
 		return $this->id;
 	}
 
-	public function on(string $name, Event $event)
+	public function on(string $name, EventUnit $event)
 	{
 		if (!isset($this->groups[$name])) {
 			$this->groups[$name] = [];
 		}
-		Manager::registerEvent($event);
+		EventManager::registerEvent($event);
 		$this->groups[$name][] = $event->getId();
 	}
 
-	public function emit(string $name, array $arguments = [])
+	public function emit(string $name, ...$arguments)
 	{
 		if (isset($this->groups[$name])) {
+			$results = [];
 			foreach ($this->groups[$name] as $id) {
-				$event = Manager::getEvent($id);
-				$event->invoke(new Context($event, $this, $name), $arguments);
+				$event = EventManager::getEvent($id);
+				$results[] = $event->invoke(new EventContext($event, $this, $name), ...$arguments);
 			}
+			return $results;
+		} else {
+			return [];
 		}
 	}
 
@@ -64,7 +68,7 @@ class Group
 		if (isset($this->groups[$name])) {
 			if ($id === '') {
 				foreach ($this->groups[$name] as $id) {
-					Manager::unregisterEvent($id);
+					EventManager::unregisterEvent($id);
 				}
 				unset($this->groups[$name]);
 			} else {
